@@ -17,7 +17,22 @@ wine = load_wine()
 # X, y 데이터를 test size는 0.2, random_state 값은 42로 하여 train 데이터와 test 데이터로 분할합니다.
 
 ''' 코드 작성 바랍니다 '''
+wine_df = pd.DataFrame(
+    wine.data,
+    columns=wine.feature_names
+)
 
+wine_df["target"] = wine.target
+
+X = wine_df.drop("target", axis=1)
+y = wine_df["target"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
 
 ####### A 작업자 작업 수행 #######
 
@@ -29,3 +44,32 @@ wine = load_wine()
 
 ''' 코드 작성 바랍니다 '''
 
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+
+xgb_param_grid = {
+    "n_estimators": [50, 100, 200],
+    "max_depth": [2, 3, 4],
+    "learning_rate": [0.01, 0.05, 0.1]
+}
+
+xgb_grid = GridSearchCV(
+    XGBClassifier(
+        random_state=42,
+        eval_metric="mlogloss"
+    ),
+    param_grid=xgb_param_grid,
+    cv=5,
+    scoring="accuracy"
+)
+
+xgb_grid.fit(X_train, y_train)
+
+xgb_model = xgb_grid.best_estimator_
+
+xgb_pred = xgb_model.predict(X_test)
+
+xgb_score = accuracy_score(y_test, xgb_pred)
+
+print("XGB Best Params:", xgb_grid.best_params_)
+print("XGB Accuracy:", xgb_score)
