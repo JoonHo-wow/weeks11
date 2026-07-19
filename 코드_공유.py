@@ -69,3 +69,32 @@ print("DT Accuracy:", dt_score)
 
 ''' 코드 작성 바랍니다 '''
 
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+
+xgb_param_grid = {
+    "n_estimators": [50, 100, 200],
+    "max_depth": [2, 3, 4],
+    "learning_rate": [0.01, 0.05, 0.1]
+}
+
+xgb_grid = GridSearchCV(
+    XGBClassifier(
+        random_state=42,
+        eval_metric="mlogloss"
+    ),
+    param_grid=xgb_param_grid,
+    cv=5,
+    scoring="accuracy"
+)
+
+xgb_grid.fit(X_train, y_train)
+
+xgb_model = xgb_grid.best_estimator_
+
+xgb_pred = xgb_model.predict(X_test)
+
+xgb_score = accuracy_score(y_test, xgb_pred)
+
+print("XGB Best Params:", xgb_grid.best_params_)
+print("XGB Accuracy:", xgb_score)
